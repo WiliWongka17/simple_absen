@@ -1,0 +1,1323 @@
+PRD — SISTEM ABSENSI SISWA BERBASIS WEB
+1. INFORMASI PROYEK
+
+Nama proyek:
+Sistem Absensi Siswa Berbasis Web
+
+Tujuan:
+Membuat sistem absensi siswa yang ringan, sederhana, mudah digunakan, dan tidak memerlukan instalasi aplikasi di HP siswa.
+
+Stack teknologi:
+
+Frontend / Application: Next.js
+Backend dan Database Service: Supabase
+Database: PostgreSQL
+Hosting: Vercel
+Bahasa: TypeScript
+Styling: Tailwind CSS
+QR Code: library QR Code yang kompatibel dengan Next.js
+GPS: Browser Geolocation API
+
+Target pengguna:
+
+Siswa
+Guru
+Admin sekolah
+
+Prinsip utama:
+
+Siswa tidak perlu membuat akun.
+Siswa tidak perlu menginstal aplikasi.
+Siswa cukup scan QR Code menggunakan kamera HP/browser.
+Siswa memasukkan NIS.
+Sistem memvalidasi lokasi siswa menggunakan GPS.
+Absensi hanya valid jika siswa berada dalam radius sekolah.
+Sistem harus ringan dan sederhana.
+Jangan menggunakan Laravel.
+Jangan membuat aplikasi Android/iOS native.
+==================================================
+2. TUJUAN PRODUK
+
+Produk harus memungkinkan sekolah melakukan absensi siswa secara digital dengan proses yang sangat sederhana.
+
+Alur utama siswa:
+
+SCAN QR
+→ HALAMAN ABSENSI
+→ MASUKKAN NIS
+→ IZINKAN LOKASI
+→ SISTEM VALIDASI
+→ ABSEN BERHASIL / DITOLAK
+
+Sistem harus mengurangi kemungkinan titip absen dengan kombinasi:
+
+QR Code
+NIS
+GPS/geofencing
+validasi waktu
+validasi satu kali absensi
+==================================================
+3. SCOPE VERSI PERTAMA (MVP)
+
+Fitur yang WAJIB dibuat pada MVP:
+
+Manajemen siswa
+Manajemen kelas
+Manajemen admin
+Konfigurasi sekolah
+QR Code absensi
+Form input NIS
+Geolocation/GPS
+Validasi radius sekolah
+Validasi jam absensi
+Validasi siswa
+Pencegahan absensi ganda
+Penyimpanan riwayat absensi
+Dashboard admin
+Daftar absensi
+Filter absensi
+Export data absensi
+Login admin
+Logout admin
+==================================================
+4. FITUR YANG TIDAK PERLU DIBUAT PADA MVP
+
+Jangan membuat fitur berikut kecuali diminta kemudian:
+
+Aplikasi Android native
+Aplikasi iOS native
+Login siswa
+Chat
+Push notification
+Face recognition
+Fingerprint
+RFID
+Payment
+Sistem nilai
+Sistem akademik
+Jadwal pelajaran kompleks
+Multi sekolah
+Multi tenant
+Integrasi WhatsApp
+Integrasi Google Classroom
+AI
+Absensi offline
+
+Tujuan MVP adalah membuat sistem absensi yang stabil dan sederhana.
+
+==================================================
+5. ARSITEKTUR SISTEM
+
+Arsitektur:
+
+Siswa
+↓
+Browser HP
+↓
+Next.js
+↓
+Supabase
+↓
+PostgreSQL
+
+Admin:
+Browser
+↓
+Next.js
+↓
+Supabase
+↓
+PostgreSQL
+
+Deployment:
+
+Next.js
+→ Vercel
+
+Database/backend:
+→ Supabase Cloud
+
+==================================================
+6. REQUIREMENT TEKNOLOGI
+
+Gunakan:
+
+Next.js versi stabil terbaru yang kompatibel dengan project.
+TypeScript.
+App Router.
+Tailwind CSS.
+Supabase JavaScript client.
+PostgreSQL melalui Supabase.
+Browser Geolocation API.
+Library QR Code yang stabil dan ringan.
+Git.
+
+Jangan menggunakan:
+
+Laravel
+Express server terpisah
+MySQL
+MongoDB
+Firebase
+Redux kecuali benar-benar diperlukan
+backend server terpisah jika tidak diperlukan
+==================================================
+7. STRUKTUR USER
+
+7.1 SISWA
+
+Siswa tidak memiliki akun.
+
+Identitas siswa menggunakan:
+
+NIS
+
+Siswa hanya dapat:
+
+membuka halaman absensi
+memasukkan NIS
+memberikan izin lokasi
+melakukan absensi
+
+Siswa tidak dapat:
+
+melihat dashboard
+mengubah data siswa
+melihat data siswa lain
+melihat seluruh riwayat absensi
+
+7.2 ADMIN
+
+Admin menggunakan login.
+
+Admin dapat:
+
+login
+logout
+melihat dashboard
+melihat siswa
+menambah siswa
+mengubah siswa
+menonaktifkan siswa
+melihat kelas
+mengelola kelas
+melihat absensi
+melakukan filter absensi
+export absensi
+mengatur lokasi sekolah
+mengatur radius
+mengatur jam absensi
+mengatur status sistem
+==================================================
+8. ALUR ABSENSI SISWA
+
+Alur normal:
+
+Sekolah menampilkan QR Code absensi.
+Siswa membuka kamera HP.
+Siswa scan QR Code.
+Browser membuka URL absensi.
+Sistem menampilkan halaman absensi.
+Siswa memasukkan NIS.
+Siswa menekan tombol "Absen".
+Browser meminta izin lokasi.
+Browser mengambil:
+latitude
+longitude
+accuracy
+Data dikirim ke server.
+Server memvalidasi:
+QR/token
+NIS
+status siswa
+waktu
+lokasi
+radius
+duplikasi absensi
+Jika semua valid:
+absensi disimpan.
+Sistem menampilkan:
+"Absensi berhasil"
+Tampilkan:
+nama siswa
+kelas
+waktu
+status
+
+Jika gagal:
+Tampilkan alasan yang jelas.
+
+Contoh:
+
+NIS tidak ditemukan.
+Siswa tidak aktif.
+Anda berada di luar area sekolah.
+Anda sudah melakukan absensi hari ini.
+QR Code sudah tidak berlaku.
+Absensi belum dibuka.
+Absensi sudah ditutup.
+Lokasi tidak dapat diperoleh.
+==================================================
+9. QR CODE
+
+MVP boleh menggunakan QR Code dengan token.
+
+QR Code tidak boleh langsung berisi:
+
+NIS
+data pribadi siswa
+status absensi
+
+Contoh:
+
+https://domain-sekolah.com/absen?token=TOKEN
+
+Token harus divalidasi oleh server.
+
+REKOMENDASI:
+
+Gunakan QR Code dinamis.
+
+Token memiliki:
+
+nilai token acak
+waktu mulai
+waktu kedaluwarsa
+status aktif
+
+Contoh konsep:
+
+attendance_sessions
+
+id
+token
+start_time
+expires_at
+is_active
+
+Token harus dibuat menggunakan nilai acak yang aman.
+
+Jangan menggunakan:
+
+timestamp sederhana sebagai token
+NIS sebagai token
+nama sekolah sebagai token
+==================================================
+10. GPS / GEOFENCING
+
+Sistem harus menggunakan Browser Geolocation API.
+
+Browser meminta izin lokasi.
+
+Data yang diambil:
+
+latitude
+longitude
+accuracy
+
+Konfigurasi sekolah:
+
+school_latitude
+school_longitude
+attendance_radius
+
+Contoh:
+
+school_latitude = -8.xxxxx
+school_longitude = 115.xxxxx
+attendance_radius = 100
+
+Satuan radius:
+meter.
+
+==================================================
+11. PERHITUNGAN JARAK
+
+Server harus menghitung jarak antara:
+
+Lokasi siswa
+dan
+Lokasi sekolah.
+
+Gunakan rumus Haversine atau fungsi geografis PostgreSQL/PostGIS jika digunakan.
+
+Jangan percaya nilai "distance" yang dikirim oleh browser.
+
+Browser hanya mengirim:
+
+latitude
+longitude
+accuracy
+
+Server menghitung sendiri jaraknya.
+
+==================================================
+12. VALIDASI GPS
+
+Contoh aturan awal:
+
+radius sekolah:
+100 meter
+
+accuracy maksimum:
+100 meter
+
+Catatan:
+Nilai tersebut harus dibuat configurable.
+
+Jangan hardcode radius di frontend.
+
+Server harus melakukan:
+
+Jika distance <= configured_radius:
+lokasi valid
+
+Jika distance > configured_radius:
+lokasi tidak valid
+
+==================================================
+13. JAM ABSENSI
+
+Admin dapat mengatur:
+
+Jam mulai absensi
+Jam akhir absensi
+
+Contoh:
+
+Mulai:
+06:00
+
+Akhir:
+08:00
+
+Jika siswa melakukan absensi:
+05:50
+→ ditolak.
+
+Jika:
+07:15
+→ valid.
+
+Jika:
+08:15
+→ ditolak.
+
+Gunakan waktu server/database.
+
+Jangan mempercayai waktu dari HP siswa.
+
+==================================================
+14. STATUS ABSENSI
+
+Minimal status:
+
+HADIR
+TERLAMBAT
+DITOLAK
+
+Untuk MVP, sistem dapat menentukan:
+
+Jika waktu <= batas jam tepat waktu:
+HADIR
+
+Jika waktu > batas jam tepat waktu tetapi masih dalam periode absensi:
+TERLAMBAT
+
+Jika di luar periode:
+DITOLAK
+
+==================================================
+15. DUPLIKASI ABSENSI
+
+Satu siswa hanya boleh memiliki satu absensi untuk satu tanggal dan sesi.
+
+Database harus memiliki constraint/index yang mencegah duplikasi.
+
+Jangan hanya melakukan pengecekan melalui frontend.
+
+Server harus memvalidasi.
+
+Jika siswa sudah absen:
+
+Tampilkan:
+
+"Anda sudah melakukan absensi hari ini."
+
+Tampilkan:
+
+waktu absensi
+status
+==================================================
+16. DATABASE
+
+Gunakan PostgreSQL melalui Supabase.
+
+Tabel minimal:
+
+TABLE: students
+
+id
+nis
+name
+class_id
+is_active
+created_at
+updated_at
+
+TABLE: classes
+
+id
+name
+grade
+created_at
+updated_at
+
+TABLE: attendance_records
+
+id
+student_id
+attendance_session_id
+attendance_date
+attendance_time
+latitude
+longitude
+accuracy
+distance_from_school
+status
+created_at
+
+TABLE: attendance_sessions
+
+id
+token
+start_time
+end_time
+is_active
+created_at
+
+TABLE: school_settings
+
+id
+school_name
+latitude
+longitude
+radius_meters
+attendance_start_time
+attendance_end_time
+late_after_time
+updated_at
+
+TABLE: admins
+
+Gunakan Supabase Auth sebagai sistem autentikasi.
+
+Tidak perlu menyimpan password admin secara manual di tabel custom.
+
+==================================================
+17. RELASI DATABASE
+
+students.class_id
+→ classes.id
+
+attendance_records.student_id
+→ students.id
+
+attendance_records.attendance_session_id
+→ attendance_sessions.id
+
+==================================================
+18. KEAMANAN DATABASE
+
+Gunakan Supabase Row Level Security (RLS).
+
+Jangan mematikan RLS hanya agar development lebih mudah.
+
+Pastikan siswa tidak dapat membaca seluruh tabel siswa.
+
+Siswa hanya membutuhkan kemampuan untuk:
+
+melakukan proses absensi melalui mekanisme server yang aman.
+
+Admin dapat membaca/mengelola data berdasarkan role.
+
+==================================================
+19. KEAMANAN API
+
+Semua validasi penting harus dilakukan di server.
+
+Jangan percaya:
+
+status valid dari browser
+distance dari browser
+waktu dari browser
+nama siswa dari browser
+class dari browser
+
+Browser hanya mengirim input mentah.
+
+Server melakukan validasi.
+
+Validasi minimal:
+
+Token valid?
+Token belum expired?
+NIS valid?
+Siswa aktif?
+Sesi absensi aktif?
+Waktu valid?
+GPS tersedia?
+Accuracy acceptable?
+Jarak valid?
+Siswa sudah absen?
+Jika semua valid → simpan.
+==================================================
+20. HALAMAN SISWA
+
+Halaman:
+
+/absen
+
+Desain harus sangat sederhana.
+
+Tampilan:
+
+Nama sekolah
+
+"ABSENSI SISWA"
+
+Input:
+NIS
+
+Button:
+ABSEN
+
+Setelah button ditekan:
+"Memeriksa lokasi..."
+
+Jika browser meminta GPS:
+"Silakan izinkan akses lokasi untuk melakukan absensi."
+
+Jika berhasil:
+
+"ABSENSI BERHASIL"
+
+Nama:
+Budi
+
+NIS:
+12345
+
+Kelas:
+X IPA 1
+
+Waktu:
+07:12:31
+
+Status:
+HADIR
+
+==================================================
+21. HALAMAN ERROR
+
+Semua error harus menggunakan bahasa yang mudah dimengerti.
+
+Contoh:
+
+NIS tidak ditemukan:
+"NIS tidak ditemukan. Silakan periksa kembali NIS Anda."
+
+Di luar radius:
+"Absensi tidak dapat dilakukan karena Anda berada di luar area sekolah."
+
+GPS ditolak:
+"Lokasi tidak diizinkan. Silakan aktifkan lokasi dan izinkan browser mengakses lokasi."
+
+QR expired:
+"QR Code sudah tidak berlaku. Silakan scan QR Code yang terbaru."
+
+Sudah absen:
+"Anda sudah melakukan absensi."
+
+==================================================
+22. DASHBOARD ADMIN
+
+Route:
+
+/admin
+
+Admin harus login.
+
+Dashboard menampilkan:
+
+Total siswa
+Jumlah hadir
+Jumlah terlambat
+Jumlah belum absen
+Persentase kehadiran
+
+Filter:
+
+tanggal
+kelas
+
+Tampilkan tabel:
+
+No
+NIS
+Nama
+Kelas
+Jam
+Status
+Jarak
+Accuracy
+
+==================================================
+23. MANAJEMEN SISWA
+
+Admin dapat:
+
+melihat siswa
+mencari siswa
+menambah siswa
+mengubah siswa
+menonaktifkan siswa
+
+Form siswa:
+
+NIS
+Nama
+Kelas
+Status aktif
+
+==================================================
+24. MANAJEMEN KELAS
+
+Admin dapat:
+
+melihat kelas
+menambah kelas
+mengubah kelas
+menghapus/nonaktifkan kelas
+
+Contoh:
+
+X IPA 1
+X IPA 2
+X IPS 1
+XI IPA 1
+XII IPA 1
+
+==================================================
+25. PENGATURAN SEKOLAH
+
+Admin dapat mengatur:
+
+Nama sekolah
+Latitude sekolah
+Longitude sekolah
+Radius absensi
+Jam mulai
+Jam selesai
+Batas keterlambatan
+
+==================================================
+26. EXPORT DATA
+
+Admin dapat export data absensi.
+
+Minimal:
+CSV
+
+Data:
+
+Tanggal
+NIS
+Nama
+Kelas
+Jam
+Status
+Latitude
+Longitude
+Accuracy
+Distance
+
+==================================================
+27. RESPONSIVE DESIGN
+
+Halaman siswa harus mobile-first.
+
+Prioritas:
+HP Android
+HP iPhone
+
+Halaman admin:
+
+desktop
+tablet
+mobile
+==================================================
+28. PERFORMA
+
+Aplikasi harus ringan.
+
+Hindari:
+
+library yang tidak diperlukan
+animasi berlebihan
+gambar besar
+request API berlebihan
+
+Halaman siswa harus cepat dibuka.
+
+Tidak perlu membuat UI kompleks.
+
+Prioritas:
+fungsi > animasi.
+
+==================================================
+29. SEO
+
+SEO bukan prioritas untuk halaman absensi.
+
+Tambahkan:
+
+title
+favicon
+metadata dasar
+
+Jangan menghabiskan waktu untuk SEO kompleks.
+
+==================================================
+30. LOGGING
+
+Simpan informasi absensi yang diperlukan:
+
+waktu
+koordinat
+accuracy
+jarak
+status
+student_id
+session_id
+
+Jangan menyimpan data pribadi yang tidak diperlukan.
+
+==================================================
+31. PRIVASI
+
+Lokasi siswa hanya digunakan untuk validasi absensi.
+
+Jangan menggunakan GPS untuk tracking terus menerus.
+
+Sistem hanya mengambil lokasi ketika siswa melakukan absensi.
+
+Jangan meminta izin lokasi saat website pertama kali dibuka jika belum diperlukan.
+
+Minta izin lokasi saat siswa menekan tombol "ABSEN".
+
+==================================================
+32. UX PENTING
+
+Proses absensi harus maksimal beberapa langkah:
+
+Scan QR
+Masukkan NIS
+Tekan ABSEN
+Izinkan lokasi jika diminta
+Selesai
+
+Jangan meminta:
+
+email
+password
+nomor HP
+tanggal lahir
+alamat
+
+kecuali memang diperlukan.
+
+==================================================
+33. STRUKTUR ROUTE
+
+Contoh:
+
+/
+→ landing/simple redirect
+
+/absen
+→ halaman absensi siswa
+
+/admin/login
+→ login admin
+
+/admin
+→ dashboard
+
+/admin/siswa
+→ manajemen siswa
+
+/admin/kelas
+→ manajemen kelas
+
+/admin/absensi
+→ data absensi
+
+/admin/pengaturan
+→ pengaturan sekolah
+
+/admin/qr
+→ pengelolaan QR/session
+
+==================================================
+34. ENVIRONMENT VARIABLES
+
+Gunakan environment variables.
+
+Minimal:
+
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+
+Jangan pernah expose:
+
+SUPABASE_SERVICE_ROLE_KEY
+
+ke browser/client.
+
+Service role hanya digunakan di server-side code.
+
+==================================================
+35. DEPLOYMENT
+
+Development:
+
+localhost
+
+Production:
+
+Vercel
+
+Database:
+
+Supabase Cloud
+
+Domain:
+
+contoh:
+absen.sekolah.sch.id
+
+HTTPS wajib.
+
+==================================================
+36. QR SESSION
+
+Untuk MVP, sistem dapat menggunakan session absensi.
+
+Admin dapat membuat/mengaktifkan session.
+
+Session mempunyai:
+
+id
+token
+start_time
+end_time
+is_active
+
+QR menampilkan URL:
+
+/absen?token=xxxxx
+
+Sistem harus mengecek token di server.
+
+Jika session tidak aktif:
+absensi ditolak.
+
+==================================================
+37. REKOMENDASI QR DINAMIS
+
+Jika implementasi MVP sudah stabil, tingkatkan menjadi QR dinamis.
+
+QR dapat berubah setiap 30–60 detik.
+
+Tujuan:
+mengurangi kemungkinan siswa memfoto QR dan menggunakannya dari tempat lain.
+
+Namun jangan membuat QR dinamis terlalu kompleks pada tahap awal.
+
+MVP:
+QR session yang memiliki masa berlaku pendek sudah cukup.
+
+==================================================
+38. VALIDASI ANTI TITIP ABSEN
+
+Sistem harus menggunakan kombinasi:
+
+NIS
++
+QR Token
++
+GPS
++
+Accuracy
++
+Timestamp server
++
+Duplicate check
+
+Tidak ada sistem GPS browser yang dapat menjamin 100% bahwa seseorang benar-benar berada di lokasi fisik.
+
+Tujuan sistem adalah mengurangi kemungkinan kecurangan secara signifikan.
+
+==================================================
+39. BATASAN GPS
+
+Developer harus memahami bahwa GPS browser dapat memiliki error.
+
+Jangan menggunakan radius sangat kecil seperti:
+5 meter
+10 meter
+
+Default awal:
+100 meter
+
+Radius harus configurable.
+
+Jika GPS accuracy buruk:
+tampilkan pesan:
+
+"Akurasi lokasi Anda kurang baik. Silakan coba kembali di area terbuka."
+
+==================================================
+40. DATABASE CONSTRAINT
+
+Tambahkan constraint untuk mencegah:
+
+NIS duplikat.
+
+Contoh:
+students.nis UNIQUE
+
+Tambahkan constraint/index untuk mencegah siswa melakukan absensi lebih dari satu kali dalam sesi/tanggal yang sama.
+
+==================================================
+41. ERROR HANDLING
+
+Semua error harus:
+
+aman
+jelas
+tidak membocorkan informasi database
+tidak menampilkan stack trace kepada user
+
+Developer boleh menampilkan error detail hanya pada development.
+
+==================================================
+42. TESTING
+
+Minimal lakukan test:
+
+TEST 1
+NIS valid
+GPS valid
+QR valid
+→ berhasil
+
+TEST 2
+NIS tidak valid
+→ ditolak
+
+TEST 3
+GPS di luar radius
+→ ditolak
+
+TEST 4
+GPS accuracy buruk
+→ ditolak/peringatan
+
+TEST 5
+QR expired
+→ ditolak
+
+TEST 6
+Siswa sudah absen
+→ ditolak
+
+TEST 7
+Siswa nonaktif
+→ ditolak
+
+TEST 8
+Di luar jam absensi
+→ ditolak
+
+TEST 9
+Di dalam jam absensi
+→ berhasil
+
+TEST 10
+Admin login
+→ berhasil
+
+TEST 11
+Admin logout
+→ berhasil
+
+TEST 12
+Admin export CSV
+→ berhasil
+
+==================================================
+43. PRIORITAS DEVELOPMENT
+
+Prioritas P0 — WAJIB
+
+Setup Next.js
+Setup Supabase
+Database siswa
+Database kelas
+Database absensi
+Halaman siswa
+Input NIS
+QR token
+GPS
+Radius validation
+Duplicate prevention
+Admin login
+Dashboard sederhana
+
+Prioritas P1
+
+CRUD siswa
+CRUD kelas
+Pengaturan sekolah
+Filter absensi
+CSV export
+QR session management
+
+Prioritas P2
+
+QR dinamis
+Grafik dashboard
+Audit log
+Pengaturan lebih lengkap
+PWA
+==================================================
+44. ATURAN UNTUK DEVELOPER / AI CODER
+
+Jangan membuat fitur di luar scope tanpa alasan.
+
+Jangan mengganti stack teknologi tanpa persetujuan.
+
+Jangan menggunakan Laravel.
+
+Jangan menggunakan database selain PostgreSQL/Supabase.
+
+Jangan membuat aplikasi mobile native.
+
+Prioritaskan kode yang mudah dipahami.
+
+Hindari abstraksi berlebihan.
+
+Jangan membuat arsitektur enterprise yang tidak diperlukan.
+
+Semua validasi keamanan penting harus dilakukan server-side.
+
+Jangan expose Supabase service role key.
+
+Gunakan TypeScript.
+
+Gunakan reusable component hanya jika memang diperlukan.
+
+Jangan memasang library besar jika fitur dapat dibuat dengan API browser sederhana.
+
+Jangan meminta data pribadi yang tidak diperlukan.
+
+Jangan melakukan GPS tracking terus menerus.
+
+Gunakan waktu server/database untuk validasi waktu absensi.
+
+Gunakan database constraint untuk mencegah data duplikat.
+
+Semua halaman harus responsive.
+
+Fokus pada MVP terlebih dahulu.
+
+Jika ada requirement yang ambigu, pilih implementasi paling sederhana yang memenuhi tujuan.
+
+==================================================
+45. DEFINITION OF DONE
+
+MVP dianggap selesai jika:
+
+[ ] Admin dapat login.
+
+[ ] Admin dapat menambahkan kelas.
+
+[ ] Admin dapat menambahkan siswa.
+
+[ ] Admin dapat mengaktifkan/nonaktifkan siswa.
+
+[ ] Admin dapat mengatur koordinat sekolah.
+
+[ ] Admin dapat mengatur radius sekolah.
+
+[ ] Admin dapat mengatur jam absensi.
+
+[ ] Admin dapat membuat/menampilkan QR session.
+
+[ ] Siswa dapat scan QR.
+
+[ ] Browser membuka halaman absensi.
+
+[ ] Siswa dapat memasukkan NIS.
+
+[ ] Browser meminta lokasi saat melakukan absensi.
+
+[ ] Sistem mendapatkan latitude/longitude/accuracy.
+
+[ ] Server menghitung jarak ke sekolah.
+
+[ ] Sistem menolak siswa di luar radius.
+
+[ ] Sistem menolak NIS tidak valid.
+
+[ ] Sistem menolak siswa nonaktif.
+
+[ ] Sistem menolak QR expired.
+
+[ ] Sistem menolak absensi di luar jam.
+
+[ ] Sistem mencegah absensi ganda.
+
+[ ] Sistem menyimpan absensi valid.
+
+[ ] Siswa mendapatkan halaman sukses.
+
+[ ] Admin dapat melihat absensi.
+
+[ ] Admin dapat filter absensi.
+
+[ ] Admin dapat export CSV.
+
+[ ] RLS Supabase telah dikonfigurasi.
+
+[ ] Service role key tidak bocor ke client.
+
+[ ] Aplikasi responsive di HP.
+
+[ ] Aplikasi berhasil dijalankan di localhost.
+
+[ ] Aplikasi berhasil deploy ke Vercel.
+
+[ ] HTTPS aktif.
+
+==================================================
+46. IMPLEMENTASI BERTAHAP
+
+Jangan mengerjakan seluruh sistem sekaligus.
+
+Tahap 1:
+Buat project Next.js kosong dan pastikan berjalan.
+
+Tahap 2:
+Hubungkan Supabase.
+
+Tahap 3:
+Buat database dan migration/schema.
+
+Tahap 4:
+Buat CRUD siswa dan kelas.
+
+Tahap 5:
+Buat login admin.
+
+Tahap 6:
+Buat halaman /absen.
+
+Tahap 7:
+Implementasi NIS validation.
+
+Tahap 8:
+Implementasi QR token.
+
+Tahap 9:
+Implementasi GPS.
+
+Tahap 10:
+Implementasi perhitungan radius.
+
+Tahap 11:
+Implementasi penyimpanan absensi.
+
+Tahap 12:
+Implementasi duplicate prevention.
+
+Tahap 13:
+Buat dashboard.
+
+Tahap 14:
+Buat filter dan export.
+
+Tahap 15:
+Testing.
+
+Tahap 16:
+Security review.
+
+Tahap 17:
+Deploy ke Vercel.
+
+Tahap 18:
+Testing menggunakan HP nyata di lingkungan sekolah.
+
+==================================================
+47. HASIL AKHIR YANG DIHARAPKAN
+
+Siswa tidak perlu menginstal aplikasi.
+
+Contoh pengalaman siswa:
+
+Sekolah menampilkan QR.
+Siswa scan QR dengan kamera HP.
+Website absensi terbuka.
+Siswa memasukkan NIS.
+Menekan tombol ABSEN.
+Browser meminta izin lokasi.
+Sistem memeriksa lokasi.
+Jika berada dalam radius sekolah:
+"Absensi berhasil."
+Jika di luar radius:
+"Absensi ditolak karena Anda berada di luar area sekolah."
+
+Sistem harus terasa seperti aplikasi sederhana meskipun sebenarnya berjalan sebagai web application.
+
+==================================================
+48. CATATAN PENTING UNTUK AI CODER
+
+Kerjakan secara bertahap dan jangan langsung menghasilkan seluruh source code sekaligus.
+
+Setiap tahap harus:
+
+Menjelaskan file yang dibuat/diubah.
+Menjelaskan tujuan perubahan.
+Memberikan kode yang diperlukan.
+Memberikan instruksi menjalankan/testing.
+Memastikan tahap tersebut berjalan sebelum melanjutkan.
+
+Jika menemukan error:
+
+jelaskan penyebabnya
+berikan solusi
+jangan mengganti seluruh arsitektur
+
+Prioritas:
+STABIL
+→ SEDERHANA
+→ AMAN
+→ MUDAH DIPERAWAT
+→ BARU FITUR TAMBAHAN
+
+==================================================
+END OF PRD
