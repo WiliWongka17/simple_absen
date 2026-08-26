@@ -1,0 +1,11 @@
+.env*
+.env.local
+.env.production.local
+*.log
+npm-debug.log*
+.vercel
+.next
+out
+build
+*.tsbuildinfo
+next-env.d.ts
