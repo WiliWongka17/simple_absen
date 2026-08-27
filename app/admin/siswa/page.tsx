@@ -126,7 +126,7 @@ export default function SiswaPage() {
           placeholder="Cari NIS atau nama..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none"
           aria-label="Cari siswa"
         />
       </div>
@@ -164,7 +164,7 @@ export default function SiswaPage() {
             onChange={(e) => setFormData({ ...formData, nis: e.target.value })}
             required
             disabled={modal.isEdit}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none disabled:bg-gray-50"
           />
         </div>
         <div>
@@ -174,7 +174,7 @@ export default function SiswaPage() {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none"
           />
         </div>
         <div>
@@ -182,7 +182,7 @@ export default function SiswaPage() {
           <select
             value={formData.class_id}
             onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none"
           >
             <option value="">— Pilih Kelas —</option>
             {classes.map((c) => (

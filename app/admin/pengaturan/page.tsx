@@ -102,18 +102,18 @@ export default function PengaturanPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nama Sekolah</label>
               <input name="school_name" type="text" defaultValue={settings.school_name}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" required />
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none" required />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
                 <input name="latitude" type="number" step="any" defaultValue={settings.latitude}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" required />
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
                 <input name="longitude" type="number" step="any" defaultValue={settings.longitude}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" required />
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none" required />
               </div>
             </div>
           </div>
@@ -124,13 +124,13 @@ export default function PengaturanPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Radius Absensi (meter)</label>
               <input name="radius_meters" type="number" min="10" max="1000" defaultValue={settings.radius_meters}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" required />
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none" required />
               <p className="text-xs text-gray-500 mt-1">Jarak maksimum dari sekolah untuk absen valid</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Akurasi Maksimum GPS (meter)</label>
               <input name="max_accuracy_meters" type="number" min="10" max="500" defaultValue={settings.max_accuracy_meters}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" required />
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none" required />
               <p className="text-xs text-gray-500 mt-1">Jika akurasi GPS lebih besar, absen ditolak</p>
             </div>
           </div>
@@ -141,17 +141,17 @@ export default function PengaturanPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Mulai Absen</label>
               <input name="attendance_start_time" type="time" defaultValue={settings.attendance_start_time.slice(0, 5)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" required />
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Batas Terlambat</label>
               <input name="late_after_time" type="time" defaultValue={settings.late_after_time.slice(0, 5)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" required />
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Selesai Absen</label>
               <input name="attendance_end_time" type="time" defaultValue={settings.attendance_end_time.slice(0, 5)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" required />
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none" required />
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">Waktu menggunakan timezone sekolah: {settings.timezone}</p>
@@ -162,7 +162,7 @@ export default function PengaturanPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Zona Waktu Sekolah</label>
             <select name="timezone" defaultValue={settings.timezone}
-              className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+              className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none">
               {TIMEZONES.map(tz => (
                 <option key={tz} value={tz}>{tz}</option>
               ))}

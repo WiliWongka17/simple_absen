@@ -120,7 +120,7 @@ export default function QRPage() {
               value={formData.start_time}
               onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
           </div>
           <div>
@@ -130,7 +130,7 @@ export default function QRPage() {
               value={formData.end_time}
               onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
           </div>
           <div className="flex items-center gap-2">
