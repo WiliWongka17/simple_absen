@@ -72,7 +72,9 @@ export default function AbsenPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
         <div className="max-w-md w-full bg-white rounded-lg shadow-sm p-8 text-center">
-          <div className="text-6xl mb-4">⚠️</div>
+          <div className="flex justify-center mb-4 text-red-500">
+            <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+          </div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">Browser tidak mendukung GPS</h1>
           <p className="text-gray-600">Silakan gunakan browser modern (Chrome, Safari, Firefox) di smartphone untuk melakukan absensi.</p>
         </div>
@@ -85,7 +87,7 @@ export default function AbsenPage() {
       <header className="bg-white border-b shadow-sm">
         <div className="max-w-md mx-auto px-4 py-4">
           <h1 className="text-center text-xl font-bold text-gray-900">{schoolName}</h1>
-          <p className="text-center text-gray-500 mt-1">ABSENSI SISWA</p>
+          <p className="text-center text-gray-700 mt-1">ABSENSI SISWA</p>
         </div>
       </header>
 
@@ -119,7 +121,7 @@ export default function AbsenPage() {
             <button
               type="submit"
               disabled={loading || !nis.trim()}
-              className="w-full py-3 px-4 bg-primary-600 text-white text-lg font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-primary-600 text-white text-lg font-medium rounded-lg hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Memeriksa lokasi...' : 'ABSEN'}
             </button>

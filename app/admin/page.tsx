@@ -50,7 +50,14 @@ const attendanceColumns: Column<AttendanceRecord>[] = [
   { key: 'accuracy', label: 'Akurasi (m)', className: 'text-gray-500', render: (r) => r.accuracy || 0 },
 ]
 
-function StatCard({ label, value, icon, color = 'blue' }: { label: string; value: number; icon: string; color?: string }) {
+const statIcons: Record<string, React.ReactNode> = {
+  blue: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>,
+  green: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+  yellow: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+  red: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>,
+}
+
+function StatCard({ label, value, color = 'blue' }: { label: string; value: number; color?: string }) {
   const colors = {
     blue: 'bg-blue-50 text-blue-700 border-blue-200',
     green: 'bg-green-50 text-green-700 border-green-200',
@@ -61,10 +68,10 @@ function StatCard({ label, value, icon, color = 'blue' }: { label: string; value
     <div className={`bg-white rounded-lg shadow p-6 border ${colors[color as keyof typeof colors]}`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-500">{label}</p>
+          <p className="text-sm font-medium text-gray-600">{label}</p>
           <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
         </div>
-        <span className="text-4xl" aria-hidden="true">{icon}</span>
+        <span className="opacity-60" aria-hidden="true">{statIcons[color || 'blue']}</span>
       </div>
     </div>
   )
@@ -111,10 +118,10 @@ export default function DashboardPage() {
       </FilterBar.Root>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total Siswa" value={data.total_siswa} icon="👥" />
-        <StatCard label="Hadir" value={data.hadir} icon="✅" color="green" />
-        <StatCard label="Terlambat" value={data.terlambat} icon="⏰" color="yellow" />
-        <StatCard label="Belum Absen" value={data.belum_absen} icon="❌" color="red" />
+        <StatCard label="Total Siswa" value={data.total_siswa} />
+        <StatCard label="Hadir" value={data.hadir} color="green" />
+        <StatCard label="Terlambat" value={data.terlambat} color="yellow" />
+        <StatCard label="Belum Absen" value={data.belum_absen} color="red" />
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
