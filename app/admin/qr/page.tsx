@@ -39,6 +39,8 @@ export default function QRPage() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null)
   const [selectedSession, setSelectedSession] = useState<Session | null>(null)
   const [error, setError] = useState('')
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [fullscreenDataUrl, setFullscreenDataUrl] = useState<string | null>(null)
 
   const fetchSessions = async () => {
     try {
@@ -53,6 +55,20 @@ export default function QRPage() {
   }
 
   useEffect(() => { fetchSessions() }, [])
+
+  useEffect(() => {
+    if (!isFullscreen) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsFullscreen(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = prev
+    }
+  }, [isFullscreen])
 
   const generateQR = async (url: string) => {
     try {
@@ -108,6 +124,8 @@ export default function QRPage() {
       if (selectedSession?.id === id) {
         setSelectedSession(null)
         setQrCodeDataUrl(null)
+        setIsFullscreen(false)
+        setFullscreenDataUrl(null)
       }
       fetchSessions()
     } catch {
@@ -118,6 +136,23 @@ export default function QRPage() {
   const handleShowQR = async (session: Session) => {
     setSelectedSession(session)
     await generateQR(session.qr_url || `${window.location.origin}/absen?token=${session.token}`)
+  }
+
+  const handleOpenFullscreen = async () => {
+    if (!selectedSession) return
+    try {
+      const url = selectedSession.qr_url || `${window.location.origin}/absen?token=${selectedSession.token}`
+      const QRCode = await import('qrcode')
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 512,
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' },
+      })
+      setFullscreenDataUrl(dataUrl)
+      setIsFullscreen(true)
+    } catch (err) {
+      console.error('QR fullscreen generation error:', err)
+    }
   }
 
   if (loading) return <LoadingGuard />
@@ -174,11 +209,21 @@ export default function QRPage() {
         </form>
       </div>
 
-      {selectedSession && qrCodeDataUrl && (
+      {selectedSession && qrCodeDataUrl ? (
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <h2 className="text-lg font-semibold text-gray-900">QR Code Aktif</h2>
-            <StatusBadge active={selectedSession.is_active} />
+            <div className="flex items-center gap-2">
+              <StatusBadge active={selectedSession.is_active} />
+              <button
+                type="button"
+                onClick={handleOpenFullscreen}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg>
+                Layar Penuh
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-6 items-center">
@@ -208,7 +253,7 @@ export default function QRPage() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
       <DataTable
         columns={columns}
@@ -232,6 +277,38 @@ export default function QRPage() {
           </>
         )}
       />
+
+      {isFullscreen && fullscreenDataUrl ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="QR Code layar penuh"
+          className="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center p-6 sm:p-8"
+          onClick={() => setIsFullscreen(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setIsFullscreen(false)}
+            className="absolute top-4 right-4 p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
+            aria-label="Tutup layar penuh"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+          <p className="text-sm font-medium text-gray-500 mb-4">Scan QR untuk absen — tekan ESC atau klik di luar untuk tutup</p>
+          <img
+            src={fullscreenDataUrl}
+            alt="QR Code absensi layar penuh"
+            className="w-[80vmin] max-w-[640px] h-auto bg-white p-4 rounded-xl border shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+          {selectedSession ? (
+            <div className="mt-6 text-center max-w-xl">
+              <p className="font-mono text-xs text-gray-500 break-all">{selectedSession.qr_url || selectedSession.token}</p>
+              <p className="text-xs text-gray-400 mt-1">{formatDateTime(selectedSession.start_time)} — {formatDateTime(selectedSession.end_time)}</p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </PageLayout>
   )
 }
