@@ -38,7 +38,7 @@ export function ModalForm({
           </button>
         </div>
         <form onSubmit={onSubmit} className="p-4 space-y-4">
-          {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
+          {error ? <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm">{error}</div> : null}
           {children}
           <div className="flex justify-end gap-3 pt-4">
             <button

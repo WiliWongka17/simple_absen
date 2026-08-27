@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import QRCode from 'qrcode'
 import { PageLayout } from '@/components/ui/PageLayout'
 import { DataTable, Column } from '@/components/ui/DataTable'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -57,6 +56,7 @@ export default function QRPage() {
 
   const generateQR = async (url: string) => {
     try {
+      const QRCode = await import('qrcode')
       const dataUrl = await QRCode.toDataURL(url, {
         width: 256, margin: 2, color: { dark: '#000000', light: '#ffffff' },
       })
@@ -127,11 +127,11 @@ export default function QRPage() {
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Buat Sesi Baru</h2>
         <form onSubmit={handleCreateSession} className="grid gap-4 sm:grid-cols-3">
-          {error && (
+          {error ? (
             <div className="sm:col-span-3">
               <Alert type="error">{error}</Alert>
             </div>
-          )}
+          ) : null}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Waktu Mulai *</label>
             <input

@@ -13,7 +13,7 @@ interface UseFilterBarOptions {
 }
 
 export function UseFilterBar(options?: UseFilterBarOptions) {
-  const [date, setDate] = useState(options?.initialDate ?? new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(() => options?.initialDate ?? new Date().toISOString().split('T')[0])
   const [classId, setClassId] = useState('')
   const [classes, setClasses] = useState<Class[]>([])
 

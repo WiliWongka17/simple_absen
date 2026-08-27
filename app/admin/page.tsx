@@ -79,9 +79,9 @@ function StatCard({ label, value, color = 'blue' }: { label: string; value: numb
 
 export default function DashboardPage() {
   const { date, setDate, classId, setClassId, classes } = UseFilterBar()
-  const [data, setData] = useState<DashboardData>({
+  const [data, setData] = useState<DashboardData>(() => ({
     total_siswa: 0, hadir: 0, terlambat: 0, belum_absen: 0, persentase_kehadiran: 0, date: new Date().toISOString().split('T')[0],
-  })
+  }))
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([])
   const [loading, setLoading] = useState(true)
 

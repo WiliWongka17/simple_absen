@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const date = searchParams.get('date') || new Date().toISOString().split('T')[0]
     const classId = searchParams.get('class_id')
 
-    // Get total active students
+    // Get total active students and attendance records in parallel
     let studentsQuery = supabase
       .from('students')
       .select('id', { count: 'exact' })
@@ -26,9 +26,6 @@ export async function GET(request: Request) {
       studentsQuery = studentsQuery.eq('class_id', classId)
     }
 
-    const { count: totalStudents } = await studentsQuery
-
-    // Get attendance records for the date
     let attendanceQuery = supabase
       .from('attendance_records')
       .select('id, status, student_id, students!inner(class_id)')
@@ -38,11 +35,19 @@ export async function GET(request: Request) {
       attendanceQuery = attendanceQuery.eq('students.class_id', classId)
     }
 
-    const { data: attendanceData } = await attendanceQuery
+    const [{ count: totalStudents }, { data: attendanceData }] = await Promise.all([
+      studentsQuery,
+      attendanceQuery,
+    ])
 
-    const hadir = attendanceData?.filter(r => r.status === 'HADIR').length || 0
-    const terlambat = attendanceData?.filter(r => r.status === 'TERLAMBAT').length || 0
+    // Single pass to count hadir, terlambat, total
+    let hadir = 0
+    let terlambat = 0
     const totalAbsent = attendanceData?.length || 0
+    for (const r of attendanceData || []) {
+      if (r.status === 'HADIR') hadir++
+      else if (r.status === 'TERLAMBAT') terlambat++
+    }
     const belumAbsen = (totalStudents || 0) - totalAbsent
     const persentase = totalStudents ? Math.round(((hadir + terlambat) / totalStudents) * 100) : 0
 

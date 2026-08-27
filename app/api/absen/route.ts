@@ -81,11 +81,30 @@ export async function POST(request: Request) {
       )
     }
 
-    const { data: student, error: studentError } = await supabase
-      .from('students')
-      .select('id, nis, name, class_id, is_active, classes (id, name, grade)')
-      .eq('nis', nis)
-      .single()
+    // 3. Validasi GPS - cek parameter
+    if (typeof latitude !== 'number' || typeof longitude !== 'number' || typeof accuracy !== 'number') {
+      return NextResponse.json(
+        { success: false, message: 'Data lokasi tidak valid' },
+        { status: 400 }
+      )
+    }
+
+    // 4. Fetch student + settings in parallel (independent queries)
+    const [studentResult, settingsResult] = await Promise.all([
+      supabase
+        .from('students')
+        .select('id, nis, name, class_id, is_active, classes (id, name, grade)')
+        .eq('nis', nis)
+        .single(),
+      supabase
+        .from('school_settings')
+        .select('latitude, longitude, radius_meters, max_accuracy_meters, attendance_start_time, late_after_time, attendance_end_time, timezone, enable_device_binding, max_students_per_device_per_day')
+        .eq('id', 1)
+        .single(),
+    ])
+
+    const { data: student, error: studentError } = studentResult
+    const { data: settings, error: settingsError } = settingsResult
 
     if (studentError || !student) {
       return NextResponse.json(
@@ -100,21 +119,6 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
-
-    // 3. Validasi GPS - cek parameter
-    if (typeof latitude !== 'number' || typeof longitude !== 'number' || typeof accuracy !== 'number') {
-      return NextResponse.json(
-        { success: false, message: 'Data lokasi tidak valid' },
-        { status: 400 }
-      )
-    }
-
-    // 4. Ambil school settings (termasuk time settings)
-    const { data: settings, error: settingsError } = await supabase
-      .from('school_settings')
-      .select('latitude, longitude, radius_meters, max_accuracy_meters, attendance_start_time, late_after_time, attendance_end_time, timezone, enable_device_binding, max_students_per_device_per_day')
-      .eq('id', 1)
-      .single()
 
     if (settingsError || !settings) {
       return NextResponse.json(

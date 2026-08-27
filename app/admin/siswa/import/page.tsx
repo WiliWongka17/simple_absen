@@ -124,9 +124,9 @@ export default function ImportSiswaPage() {
 
       {result && (
         <div className="bg-white rounded-lg shadow p-6">
-          {result.error && (
+          {result.error ? (
             <Alert type="error">{result.error}</Alert>
-          )}
+          ) : null}
 
           {result.summary && (
             <div className="space-y-4">
@@ -150,7 +150,7 @@ export default function ImportSiswaPage() {
                 </div>
               </div>
 
-              {result.errors && result.errors.length > 0 && (
+              {result.errors?.length ? (
                 <div>
                   <h3 className="text-sm font-medium text-gray-900 mb-2">Detail Error:</h3>
                   <div className="bg-red-50 rounded-lg p-4 max-h-60 overflow-y-auto">
@@ -172,7 +172,7 @@ export default function ImportSiswaPage() {
                     </table>
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {result.summary.berhasil > 0 && (
                 <div className="pt-2">
