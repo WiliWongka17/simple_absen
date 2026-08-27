@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useCrudEntity } from '@/hooks/useCrudEntity'
 import { useCrudModal } from '@/hooks/useCrudModal'
 import { PageLayout } from '@/components/ui/PageLayout'
@@ -112,12 +113,20 @@ export default function SiswaPage() {
       title="Manajemen Siswa"
       description="Kelola data siswa dan kelas"
       action={
-        <button
-          onClick={openCreate}
-          className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-        >
-          + Tambah Siswa
-        </button>
+        <div className="flex gap-2">
+          <Link
+            href="/admin/siswa/import"
+            className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium"
+          >
+            Import Excel
+          </Link>
+          <button
+            onClick={openCreate}
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            + Tambah Siswa
+          </button>
+        </div>
       }
     >
       <div className="bg-white rounded-lg shadow p-4">
