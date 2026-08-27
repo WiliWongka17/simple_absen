@@ -26,6 +26,7 @@ interface ImportResult {
 
 export default function ImportSiswaPage() {
   const [uploading, setUploading] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [result, setResult] = useState<ImportResult | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -46,15 +47,14 @@ export default function ImportSiswaPage() {
   }
 
   const handleUpload = async () => {
-    const file = fileRef.current?.files?.[0]
-    if (!file) return
+    if (!selectedFile) return
 
     setUploading(true)
     setResult(null)
 
     try {
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', selectedFile)
 
       const res = await fetch('/api/admin/students/import', {
         method: 'POST',
@@ -108,11 +108,12 @@ export default function ImportSiswaPage() {
               ref={fileRef}
               type="file"
               accept=".xlsx"
+              onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
               className="block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 focus:outline-none"
             />
             <button
               onClick={handleUpload}
-              disabled={uploading || !fileRef.current?.files?.[0]}
+              disabled={uploading || !selectedFile}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50 whitespace-nowrap"
             >
               {uploading ? 'Mengupload...' : 'Import'}
