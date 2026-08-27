@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import QRCode from 'qrcode'
+import { PageLayout } from '@/components/ui/PageLayout'
+import { DataTable, Column } from '@/components/ui/DataTable'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Alert } from '@/components/ui/Alert'
+import { LoadingGuard } from '@/components/ui/LoadingGuard'
 
 interface Session {
   id: string
@@ -13,15 +18,25 @@ interface Session {
   qr_url?: string
 }
 
+const columns: Column<Session>[] = [
+  { key: 'token', label: 'Token', className: 'font-mono text-gray-600', render: (s) => s.token.substring(0, 12) + '...' },
+  { key: 'start_time', label: 'Mulai', className: 'text-gray-600', render: (s) => formatDateTime(s.start_time) },
+  { key: 'end_time', label: 'Selesai', className: 'text-gray-600', render: (s) => formatDateTime(s.end_time) },
+  { key: 'is_active', label: 'Status', render: (s) => <StatusBadge active={s.is_active} /> },
+  { key: 'created_at', label: 'Dibuat', className: 'text-gray-500', render: (s) => formatDateTime(s.created_at) },
+]
+
+function formatDateTime(isoString: string) {
+  return new Date(isoString).toLocaleString('id-ID', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  })
+}
+
 export default function QRPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
-  const [formData, setFormData] = useState({
-    start_time: '',
-    end_time: '',
-    is_active: true,
-  })
+  const [formData, setFormData] = useState({ start_time: '', end_time: '', is_active: true })
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null)
   const [selectedSession, setSelectedSession] = useState<Session | null>(null)
   const [error, setError] = useState('')
@@ -30,19 +45,26 @@ export default function QRPage() {
     try {
       const res = await fetch('/api/admin/sessions')
       const data = await res.json()
-      if (data.success) {
-        setSessions(data.data)
-      }
-    } catch (err) {
+      if (data.success) setSessions(data.data)
+    } catch {
       setError('Gagal memuat sesi')
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchSessions()
-  }, [])
+  useEffect(() => { fetchSessions() }, [])
+
+  const generateQR = async (url: string) => {
+    try {
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 256, margin: 2, color: { dark: '#000000', light: '#ffffff' },
+      })
+      setQrCodeDataUrl(dataUrl)
+    } catch (err) {
+      console.error('QR generation error:', err)
+    }
+  }
 
   const handleCreateSession = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -74,55 +96,21 @@ export default function QRPage() {
     }
   }
 
-  const generateQR = async (url: string) => {
-    try {
-      const dataUrl = await QRCode.toDataURL(url, {
-        width: 256,
-        margin: 2,
-        color: { dark: '#000000', light: '#ffffff' },
-      })
-      setQrCodeDataUrl(dataUrl)
-    } catch (err) {
-      console.error('QR generation error:', err)
-    }
+  const handleShowQR = async (session: Session) => {
+    setSelectedSession(session)
+    await generateQR(session.qr_url || `${window.location.origin}/absen?token=${session.token}`)
   }
 
-  const handleActivate = async (session: Session) => {
-    try {
-      // Toggle active status - for MVP we just show the QR
-      setSelectedSession(session)
-      await generateQR(session.qr_url || `${window.location.origin}/absen?token=${session.token}`)
-    } catch (err) {
-      console.error('Activate error:', err)
-    }
-  }
-
-  const formatDateTime = (isoString: string) => {
-    return new Date(isoString).toLocaleString('id-ID', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
-
-  if (loading) return <div className="flex justify-center py-12">Memuat...</div>
+  if (loading) return <LoadingGuard />
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">QR Code Absensi</h1>
-        <p className="text-gray-500">Buat sesi absensi dan tampilkan QR Code untuk siswa scan</p>
-      </div>
-
-      {/* Create Session Form */}
+    <PageLayout title="QR Code Absensi" description="Buat sesi absensi dan tampilkan QR Code untuk siswa scan">
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Buat Sesi Baru</h2>
         <form onSubmit={handleCreateSession} className="grid gap-4 sm:grid-cols-3">
           {error && (
-            <div className="sm:col-span-3 bg-red-50 text-red-700 p-3 rounded-lg text-sm">
-              {error}
+            <div className="sm:col-span-3">
+              <Alert type="error">{error}</Alert>
             </div>
           )}
           <div>
@@ -167,20 +155,11 @@ export default function QRPage() {
         </form>
       </div>
 
-      {/* QR Display */}
       {selectedSession && qrCodeDataUrl && (
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <h2 className="text-lg font-semibold text-gray-900">QR Code Aktif</h2>
-            <span
-              className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                selectedSession.is_active
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-              }`}
-            >
-              {selectedSession.is_active ? 'Aktif' : 'Nonaktif'}
-            </span>
+            <StatusBadge active={selectedSession.is_active} />
           </div>
 
           <div className="flex flex-col sm:flex-row gap-6 items-center">
@@ -212,70 +191,20 @@ export default function QRPage() {
         </div>
       )}
 
-      {/* Sessions List */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <h2 className="px-6 py-4 border-b text-lg font-semibold text-gray-900">Riwayat Sesi</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Token</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mulai</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Selesai</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dibuat</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {sessions.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                    Belum ada sesi absensi
-                  </td>
-                </tr>
-              ) : (
-                sessions.map((session) => (
-                  <tr key={session.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-mono text-gray-600">
-                      {session.token.substring(0, 12)}...
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {formatDateTime(session.start_time)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {formatDateTime(session.end_time)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                          session.is_active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {session.is_active ? 'Aktif' : 'Nonaktif'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {formatDateTime(session.created_at)}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleActivate(session)}
-                        disabled={!session.is_active}
-                        className="text-primary-600 hover:text-primary-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Tampilkan QR
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+      <DataTable
+        columns={columns}
+        rows={sessions}
+        emptyMessage="Belum ada sesi absensi"
+        renderRowActions={(session) => (
+          <button
+            onClick={() => handleShowQR(session)}
+            disabled={!session.is_active}
+            className="text-primary-600 hover:text-primary-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Tampilkan QR
+          </button>
+        )}
+      />
+    </PageLayout>
   )
 }

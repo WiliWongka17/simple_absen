@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { Alert } from '@/components/ui/Alert'
 
 function LoginForm() {
   const router = useRouter()
@@ -44,11 +45,7 @@ function LoginForm() {
           <p className="mt-2 text-gray-600">Masukkan kredensial untuk mengakses dashboard</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
+        {error && <Alert type="error">{error}</Alert>}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>

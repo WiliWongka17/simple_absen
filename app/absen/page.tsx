@@ -1,84 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useState } from 'react'
+import { useSchoolSettings } from '@/hooks/useSchoolSettings'
+import { useGeolocation } from '@/hooks/useGeolocation'
+import { Alert } from '@/components/ui/Alert'
 
 export default function AbsenPage() {
   const [nis, setNis] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null)
-  const [schoolName, setSchoolName] = useState('Nama Sekolah')
-  const [gpsSupported, setGpsSupported] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  // Fetch school name on mount
-  useEffect(() => {
-    const fetchSchoolName = async () => {
-      try {
-        const supabase = createClient()
-        const { data, error } = await supabase.from('school_settings').select('school_name').eq('id', 1).single()
-        if (error) {
-          console.error('School settings error:', error)
-          return
-        }
-        if (data) setSchoolName(data.school_name)
-      } catch (err) {
-        console.error('Fetch error:', err)
-      }
-    }
-    fetchSchoolName()
-  }, [])
+  const { settings } = useSchoolSettings()
+  const { supported: gpsSupported, getLocation } = useGeolocation()
 
-  // Check GPS support
-  useEffect(() => {
-    setGpsSupported('geolocation' in navigator)
-  }, [])
-
-  // Get GPS location
-  const getLocation = (): Promise<{ latitude: number; longitude: number; accuracy: number }> => {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error('Browser tidak mendukung GPS'))
-        return
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-          })
-        },
-        (error) => {
-          let message = 'Gagal mendapatkan lokasi'
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              message = 'Lokasi tidak diizinkan. Silakan aktifkan lokasi dan izinkan browser mengakses lokasi.'
-              break
-            case error.POSITION_UNAVAILABLE:
-              message = 'Lokasi tidak tersedia. Silakan coba lagi di area terbuka.'
-              break
-            case error.TIMEOUT:
-              message = 'Waktu permintaan lokasi habis. Silakan coba lagi.'
-              break
-          }
-          reject(new Error(message))
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        }
-      )
-    })
-  }
+  const schoolName = settings?.school_name ?? 'Nama Sekolah'
 
   const handleAbsen = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setMessage(null)
 
-    // Get token from URL
     const searchParams = new URLSearchParams(window.location.search)
     const token = searchParams.get('token')
 
@@ -95,10 +36,8 @@ export default function AbsenPage() {
     }
 
     try {
-      // Get GPS location
       const location = await getLocation()
 
-      // Call API
       const res = await fetch('/api/absen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -118,10 +57,9 @@ export default function AbsenPage() {
         return
       }
 
-      // Success - show result
       setMessage({
         type: 'success',
-        text: `Absensi berhasil!\nNama: ${data.data.name}\nNIS: ${data.data.nis}\nKelas: ${data.data.class}\nWaktu: ${new Date().toLocaleTimeString('id-ID')}\nStatus: HADIR`,
+        text: `Absensi berhasil!\nNama: ${data.data.name}\nNIS: ${data.data.nis}\nKelas: ${data.data.class}\nWaktu: ${new Date().toLocaleTimeString('id-ID')}\nStatus: ${data.data.status}`,
       })
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Terjadi kesalahan' })
@@ -144,7 +82,6 @@ export default function AbsenPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
       <header className="bg-white border-b shadow-sm">
         <div className="max-w-md mx-auto px-4 py-4">
           <h1 className="text-center text-xl font-bold text-gray-900">{schoolName}</h1>
@@ -152,16 +89,11 @@ export default function AbsenPage() {
         </div>
       </header>
 
-      {/* Main Form */}
       <main className="flex-1 max-w-md mx-auto w-full px-4 py-8 flex items-center justify-center">
         <div className="w-full bg-white rounded-lg shadow-sm p-6">
           {message && (
-            <div className={`mb-6 p-4 rounded-lg text-sm whitespace-pre-line ${
-              message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
-              message.type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
-              'bg-blue-50 text-blue-800 border border-blue-200'
-            }`}>
-              {message.text}
+            <div className="mb-6">
+              <Alert type={message.type}>{message.text}</Alert>
             </div>
           )}
 
