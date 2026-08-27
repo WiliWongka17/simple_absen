@@ -53,7 +53,11 @@ export default function QRPage() {
       const res = await fetch('/api/admin/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          start_time: new Date(formData.start_time).toISOString(),
+          end_time: new Date(formData.end_time).toISOString(),
+        }),
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.message || data.error)

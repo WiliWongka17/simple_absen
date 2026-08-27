@@ -155,8 +155,10 @@ export async function POST(request: Request) {
 
     const status = timeValidation.status!
 
-    // 8. Cek duplikat absensi hari ini
-    const today = new Date().toISOString().split('T')[0]
+    const schoolNow = new Date().toLocaleString('sv-SE', { timeZone: settings.timezone })
+
+    // 8. Cek duplikat absensi hari ini (timezone-aware)
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: settings.timezone })
     const { data: existingRecord, error: dupError } = await supabase
       .from('attendance_records')
       .select('id')
@@ -185,7 +187,7 @@ export async function POST(request: Request) {
         student_id: student.id,
         attendance_session_id: session.id,
         attendance_date: today,
-        attendance_time: now.toISOString(),
+        attendance_time: schoolNow,
         latitude,
         longitude,
         accuracy,
