@@ -96,6 +96,25 @@ export default function QRPage() {
     }
   }
 
+  const handleDelete = async (id: string) => {
+    if (!confirm('Hapus sesi ini?')) return
+    try {
+      const res = await fetch(`/api/admin/sessions/${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!data.success) {
+        setError(data.error || 'Gagal menghapus sesi')
+        return
+      }
+      if (selectedSession?.id === id) {
+        setSelectedSession(null)
+        setQrCodeDataUrl(null)
+      }
+      fetchSessions()
+    } catch {
+      setError('Gagal menghapus sesi')
+    }
+  }
+
   const handleShowQR = async (session: Session) => {
     setSelectedSession(session)
     await generateQR(session.qr_url || `${window.location.origin}/absen?token=${session.token}`)
@@ -196,13 +215,21 @@ export default function QRPage() {
         rows={sessions}
         emptyMessage="Belum ada sesi absensi"
         renderRowActions={(session) => (
-          <button
-            onClick={() => handleShowQR(session)}
-            disabled={!session.is_active}
-            className="text-primary-600 hover:text-primary-900 text-sm font-medium focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed rounded"
-          >
-            Tampilkan QR
-          </button>
+          <>
+            <button
+              onClick={() => handleShowQR(session)}
+              disabled={!session.is_active}
+              className="text-primary-600 hover:text-primary-900 text-sm font-medium focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed rounded"
+            >
+              Tampilkan QR
+            </button>
+            <button
+              onClick={() => handleDelete(session.id)}
+              className="text-red-600 hover:text-red-900 text-sm font-medium focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none rounded"
+            >
+              Hapus
+            </button>
+          </>
         )}
       />
     </PageLayout>
