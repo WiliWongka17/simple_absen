@@ -24,7 +24,15 @@ export async function POST(request: Request) {
       )
     }
 
-    const { token, nis, latitude, longitude, accuracy } = body
+    const { token, nis, latitude, longitude, accuracy, device_id } = body
+
+    // 0. Validasi device_id
+    if (!device_id || typeof device_id !== 'string') {
+      return NextResponse.json(
+        { success: false, message: 'Perangkat tidak dikenali, silakan muat ulang halaman.' },
+        { status: 400 }
+      )
+    }
 
     // 1. Validasi token
     if (!token || typeof token !== 'string') {
@@ -104,7 +112,7 @@ export async function POST(request: Request) {
     // 4. Ambil school settings (termasuk time settings)
     const { data: settings, error: settingsError } = await supabase
       .from('school_settings')
-      .select('latitude, longitude, radius_meters, max_accuracy_meters, attendance_start_time, late_after_time, attendance_end_time, timezone')
+      .select('latitude, longitude, radius_meters, max_accuracy_meters, attendance_start_time, late_after_time, attendance_end_time, timezone, enable_device_binding, max_students_per_device_per_day')
       .eq('id', 1)
       .single()
 
@@ -157,7 +165,30 @@ export async function POST(request: Request) {
 
     const schoolNow = new Date().toLocaleString('sv-SE', { timeZone: settings.timezone })
 
-    // 8. Cek duplikat absensi hari ini (timezone-aware)
+    // 8. Validasi device binding (anti-titip-absen)
+    if (settings.enable_device_binding) {
+      const today = new Date().toLocaleDateString('sv-SE', { timeZone: settings.timezone })
+
+      const { data: deviceRecords } = await supabase
+        .from('attendance_records')
+        .select('student_id')
+        .eq('device_id', device_id)
+        .eq('attendance_date', today)
+
+      if (deviceRecords && deviceRecords.length > 0) {
+        const uniqueStudentIds = [...new Set(deviceRecords.map(r => r.student_id))]
+        const deviceUsedByOtherStudent = !uniqueStudentIds.includes(student.id)
+
+        if (uniqueStudentIds.length >= settings.max_students_per_device_per_day && deviceUsedByOtherStudent) {
+          return NextResponse.json(
+            { success: false, message: 'Perangkat ini sudah digunakan untuk absensi siswa lain hari ini. Setiap siswa harus absen menggunakan perangkat sendiri.' },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
+    // 9. Cek duplikat absensi hari ini (timezone-aware)
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: settings.timezone })
     const { data: existingRecord, error: dupError } = await supabase
       .from('attendance_records')
@@ -180,7 +211,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // 9. Simpan record absensi
+    // 10. Simpan record absensi
     const { data: record, error: insertError } = await supabase
       .from('attendance_records')
       .insert({
@@ -193,6 +224,7 @@ export async function POST(request: Request) {
         accuracy,
         distance_from_school: Math.round(distance),
         status,
+        device_id,
       })
       .select()
       .single()

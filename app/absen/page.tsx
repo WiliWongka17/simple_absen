@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useSchoolSettings } from '@/hooks/useSchoolSettings'
 import { useGeolocation } from '@/hooks/useGeolocation'
+import { getOrCreateDeviceId } from '@/lib/device'
 import { Alert } from '@/components/ui/Alert'
 
 export default function AbsenPage() {
@@ -47,6 +48,7 @@ export default function AbsenPage() {
           latitude: location.latitude,
           longitude: location.longitude,
           accuracy: location.accuracy,
+          device_id: getOrCreateDeviceId(),
         }),
       })
 

@@ -48,6 +48,8 @@ export async function PATCH(request: Request) {
       late_after_time,
       attendance_end_time,
       timezone,
+      enable_device_binding,
+      max_students_per_device_per_day,
     } = body
 
     const updates: Record<string, unknown> = {}
@@ -60,6 +62,8 @@ export async function PATCH(request: Request) {
     if (late_after_time !== undefined) updates.late_after_time = late_after_time
     if (attendance_end_time !== undefined) updates.attendance_end_time = attendance_end_time
     if (timezone !== undefined) updates.timezone = timezone
+    if (enable_device_binding !== undefined) updates.enable_device_binding = enable_device_binding
+    if (max_students_per_device_per_day !== undefined) updates.max_students_per_device_per_day = max_students_per_device_per_day
     updates.updated_at = new Date().toISOString()
 
     const { data, error } = await supabase

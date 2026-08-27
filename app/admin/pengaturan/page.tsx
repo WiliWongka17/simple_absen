@@ -16,6 +16,8 @@ interface SchoolSettings {
   late_after_time: string
   attendance_end_time: string
   timezone: string
+  enable_device_binding: boolean
+  max_students_per_device_per_day: number
   updated_at: string
 }
 
@@ -72,6 +74,8 @@ export default function PengaturanPage() {
         late_after_time: formData.get('late_after_time') as string,
         attendance_end_time: formData.get('attendance_end_time') as string,
         timezone: formData.get('timezone') as string,
+        enable_device_binding: formData.get('enable_device_binding') === 'on',
+        max_students_per_device_per_day: parseInt(formData.get('max_students_per_device_per_day') as string) || 1,
       }
       const res = await fetch('/api/admin/settings', {
         method: 'PATCH',
@@ -170,6 +174,30 @@ export default function PengaturanPage() {
             <p className="text-xs text-gray-500 mt-1">Digunakan untuk validasi jam absensi di server</p>
           </div>
         </div>
+
+        <SettingsSection title="Anti-Titip-Absen (Device Binding)">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                name="enable_device_binding"
+                defaultChecked={settings.enable_device_binding}
+                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+              />
+              <div>
+                <label className="text-sm font-medium text-gray-700">Aktifkan proteksi anti-titip-absen</label>
+                <p className="text-xs text-gray-500">Satu perangkat hanya boleh digunakan untuk absensi siswa terbatas per hari</p>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Maks. Siswa per Perangkat per Hari</label>
+              <input name="max_students_per_device_per_day" type="number" min="1" max="10"
+                defaultValue={settings.max_students_per_device_per_day}
+                className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none" required />
+              <p className="text-xs text-gray-500 mt-1">Default: 1. Naikkan jika perangkat bersama (mis. lab komputer)</p>
+            </div>
+          </div>
+        </SettingsSection>
 
         <div className="flex justify-end pt-4 border-t">
           <button type="submit" disabled={saving}
