@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { UseFilterBar } from '@/hooks/useFilterBar'
 import { PageLayout } from '@/components/ui/PageLayout'
 import { DataTable, Column } from '@/components/ui/DataTable'
-import { FilterBar } from '@/components/admin/FilterBar'
 import { LoadingGuard } from '@/components/ui/LoadingGuard'
 import { Alert } from '@/components/ui/Alert'
 
@@ -28,7 +27,9 @@ const STATUS_OPTIONS = [
 ] as const
 
 export default function AbsensiPage() {
-  const { date, setDate, classId, setClassId, classes } = UseFilterBar()
+  const { classId, setClassId, classes } = UseFilterBar()
+  const [from, setFrom] = useState(() => new Date().toISOString().split('T')[0])
+  const [to, setTo] = useState(() => new Date().toISOString().split('T')[0])
   const [rows, setRows] = useState<DailyRow[]>([])
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<string | null>(null)
@@ -38,7 +39,7 @@ export default function AbsensiPage() {
     try {
       setLoading(true)
       const params = new URLSearchParams()
-      params.set('date', date)
+      params.set('date', to)
       if (classId) params.set('class_id', classId)
       const res = await fetch(`/api/admin/attendance/status?${params.toString()}`)
       const result = await res.json()
@@ -51,7 +52,7 @@ export default function AbsensiPage() {
     }
   }
 
-  useEffect(() => { fetchData() }, [date, classId])
+  useEffect(() => { fetchData() }, [to, classId])
 
   const handleStatusChange = async (studentId: string, newStatus: string) => {
     const prevRows = rows
@@ -65,7 +66,7 @@ export default function AbsensiPage() {
       const res = await fetch('/api/admin/attendance/status', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ student_id: studentId, status_date: date, status: newStatus }),
+        body: JSON.stringify({ student_id: studentId, status_date: to, status: newStatus }),
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error || 'Gagal menyimpan')
@@ -81,16 +82,20 @@ export default function AbsensiPage() {
 
   const handleExport = async () => {
     const params = new URLSearchParams()
-    params.set('date', date)
+    params.set('from', from)
+    params.set('to', to)
     if (classId) params.set('class_id', classId)
     try {
       const res = await fetch(`/api/admin/export?${params.toString()}`)
-      if (!res.ok) throw new Error('Export gagal')
+      if (!res.ok) {
+        const result = await res.json().catch(() => null)
+        throw new Error(result?.message || 'Export gagal')
+      }
       const blob = await res.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `absensi-${date}${classId ? `-${classId}` : ''}.csv`
+      a.download = `rekap-absensi-${from}-sd-${to}.xlsx`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -140,18 +145,53 @@ export default function AbsensiPage() {
   return (
     <PageLayout
       title="Data Absensi"
-      description="Kelola status kehadiran — ubah dropdown untuk menyimpan otomatis"
+      description="Pilih rentang tanggal — tabel menampilkan status pada tanggal Sampai; ubah dropdown untuk menyimpan otomatis"
       action={
         <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-          Export CSV
+          Download Rekap Excel
         </button>
       }
     >
-      <FilterBar.Root date={date} classId={classId} classes={classes}>
-        <FilterBar.Date value={date} onChange={setDate} />
-        <FilterBar.Class value={classId} onChange={setClassId} />
-        <FilterBar.Apply onClick={fetchData} />
-      </FilterBar.Root>
+      <div className="bg-white rounded-lg shadow p-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-end">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+            <input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+            <select
+              value={classId}
+              onChange={(e) => setClassId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            >
+              <option value="">Semua Kelas</option>
+              {classes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.grade ? c.grade + ' ' : ''}{c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button onClick={fetchData} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+            Filter
+          </button>
+        </div>
+      </div>
 
       {message ? <Alert type={message.type}>{message.text}</Alert> : null}
 
