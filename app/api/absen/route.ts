@@ -241,6 +241,24 @@ export async function POST(request: Request) {
       )
     }
 
+    // 11. Upsert status harian -> HADIR via SCAN (menimpa status manual jika ada)
+    const { error: dailyError } = await supabase
+      .from('student_daily_status')
+      .upsert(
+        {
+          student_id: student.id,
+          status_date: today,
+          status: 'HADIR',
+          source: 'SCAN',
+          updated_by: null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'student_id,status_date' }
+      )
+    if (dailyError) {
+      console.error('Upsert daily status error:', dailyError)
+    }
+
     const classInfo = (student.classes as any[])?.find?.(() => true) ?? null
 
     return NextResponse.json({
